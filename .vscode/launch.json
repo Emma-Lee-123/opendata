@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Azure Function (.NET Isolated)",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net8.0/opendata-functions.dll",
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "env": {
+        "AzureWebJobsScriptRoot": "${workspaceFolder}",
+        "AzureFunctionsJobHost__Logging__Console__IsEnabled": "true"
+      },
+      "preLaunchTask": "build"
+    },
+    {
+      "name": "Attach to .NET Functions",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:azureFunctions.pickProcess}"
+    }
+  ]
+}
+
+// {
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "name": "Attach to .NET Functions",
+//       "type": "coreclr",
+//       "request": "attach",
+//       "processId": "${command:azureFunctions.pickProcess}"
+//     }
+//   ]
+// }
