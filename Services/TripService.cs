@@ -55,6 +55,7 @@ public class TripService : ITripService
             {
                 if (tripStops.TryGetValue(trip.Id, out var stops))
                 {
+                    stops.ForEach(s=>s.TripHeadsign = trip.TripHeadsign);
                     trip.FirstTripStops.AddRange(stops);
                 }
             }
@@ -135,6 +136,7 @@ public class TripService : ITripService
                 TripHeadsign = reader.GetString("FirstTripHeadsign"),
                 DepartureTime = reader.GetString("DepartureTime"),
                 ArrivalTime = reader.GetString("ArrivalTime"),
+                RouteType = reader.GetInt32("FirstRouteType"),
                 FirstTripStops = new List<TripStop>(),
                 Transfer = new Transfer(),
                 SecondTripStops = new List<TripStop>()
