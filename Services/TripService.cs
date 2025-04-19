@@ -2,7 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenData.Functions.Models;
-using OpenData.Functions.Services;
+//using OpenData.Functions.Services;
 using System.Data;
 
 public class TripService : ITripService
@@ -228,8 +228,8 @@ public class TripService : ITripService
                 startStopId, endStopId);
             throw;
         }
-
-        return stops.ToDictionary(s => s.TripId, s => new List<TripStop> { s });
+        var tripStopGroups = stops.GroupBy(s => s.TripId).ToDictionary(s => s.Key, s => s.ToList());
+        return tripStopGroups;
     }
 
     private void ValidateParameters(string fromStopId, string toStopId)

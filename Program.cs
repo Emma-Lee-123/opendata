@@ -11,5 +11,6 @@ builder.ConfigureFunctionsWebApplication();
 //     .AddApplicationInsightsTelemetryWorkerService()
 //     .ConfigureFunctionsApplicationInsights();
 builder.Services.AddSingleton<IStopService, StopService>();
+builder.Services.AddSingleton<ITripService, TripService>();
 
 builder.Build().Run();
