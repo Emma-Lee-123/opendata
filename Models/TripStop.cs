@@ -2,40 +2,40 @@ namespace OpenData.Functions.Models
 {
     public class TripStop
     {
-        public string TripId
+        public string tripId
         {
             get; set;
         }
-        public string TripHeadsign
+        public string tripHeadsign
         {
             get; set;
         }
         //directionId: number;
-        public int RouteType
+        public int routeType
         {
             get; set;
         }//0:streetcar;1:subway;2:rail;3:bus;4:ferry;5:cable car;6:funicular;7:trolley bus;8:monorail)
-        public string StopId
+        public string stopId
         {
             get;
             set;
         }
-        public int StopSequence
+        public int stopSequence
         {
             get;
             set;
         }
-        public string ArrivalTime
+        public string arrivalTime
         {
             get;
             set;
         }
-        public string DepartureTime
+        public string departureTime
         {
             get;
             set;
         }
-        public string StopName
+        public string stopName
         {
             get;
             set;

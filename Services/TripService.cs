@@ -19,11 +19,11 @@ public class TripService : ITripService
 
     public async Task<IEnumerable<TripStopGroup>> GetTripStopGroupsAsync(SearchParams searchParams)
     {
-        _logger.LogInformation($"GetTripStopGroupsAsync from-{searchParams.From}, to-{searchParams.To}, date-{searchParams.Date}, time-{searchParams.StartTime}");
-        var fromStopId = searchParams.From;
-        var toStopId = searchParams.To;
-        var date = searchParams.Date;
-        var startTime = searchParams.StartTime;
+        _logger.LogInformation($"GetTripStopGroupsAsync from-{searchParams.from}, to-{searchParams.to}, date-{searchParams.date}, time-{searchParams.startTime}");
+        var fromStopId = searchParams.from;
+        var toStopId = searchParams.to;
+        var date = searchParams.date;
+        var startTime = searchParams.startTime;
 
         ValidateParameters(fromStopId, toStopId);
 
@@ -48,15 +48,15 @@ public class TripService : ITripService
             var directTrips = await GetDirectTripsAsync(connection, fromStopId, toStopId, date, formattedStartTime, maxResults);
             results.AddRange(directTrips);
 
-            var tripIds = directTrips.Select(t => t.Id).ToList();
+            var tripIds = directTrips.Select(t => t.id).ToList();
             var tripStops = await GetStopsBetweenStopsAsync(tripIds, fromStopId, toStopId);
 
             foreach (var trip in results)
             {
-                if (tripStops.TryGetValue(trip.Id, out var stops))
+                if (tripStops.TryGetValue(trip.id, out var stops))
                 {
-                    stops.ForEach(s => s.TripHeadsign = trip.TripHeadsign);
-                    trip.FirstTripStops.AddRange(stops);
+                    stops.ForEach(s => s.tripHeadsign = trip.tripHeadsign);
+                    trip.firstTripStops.AddRange(stops);
                 }
             }
             _logger.LogInformation("Found {Count} trip options", results.Count);
@@ -132,14 +132,14 @@ public class TripService : ITripService
         {
             results.Add(new TripStopGroup
             {
-                Id = reader.GetString("Id"),
-                TripHeadsign = reader.GetString("FirstTripHeadsign"),
-                DepartureTime = reader.GetString("DepartureTime"),
-                ArrivalTime = reader.GetString("ArrivalTime"),
-                RouteType = reader.GetInt32("FirstRouteType"),
-                FirstTripStops = new List<TripStop>(),
-                Transfer = new Transfer(),
-                SecondTripStops = new List<TripStop>()
+                id = reader.GetString("Id"),
+                tripHeadsign = reader.GetString("FirstTripHeadsign"),
+                departureTime = reader.GetString("DepartureTime"),
+                arrivalTime = reader.GetString("ArrivalTime"),
+                routeType = reader.GetInt32("FirstRouteType"),
+                firstTripStops = new List<TripStop>(),
+                transfer = new Transfer(),
+                secondTripStops = new List<TripStop>()
             });
         }
 
@@ -209,12 +209,12 @@ public class TripService : ITripService
             {
                 stops.Add(new TripStop
                 {
-                    TripId = reader.GetString("TripId"),
-                    StopId = reader.GetString("StopId"),
-                    StopName = reader.GetString("StopName"),
-                    ArrivalTime = reader.GetString("ArrivalTime"),
-                    DepartureTime = reader.GetString("DepartureTime"),
-                    StopSequence = reader.GetInt32("StopSequence")
+                    tripId = reader.GetString("TripId"),
+                    stopId = reader.GetString("StopId"),
+                    stopName = reader.GetString("StopName"),
+                    arrivalTime = reader.GetString("ArrivalTime"),
+                    departureTime = reader.GetString("DepartureTime"),
+                    stopSequence = reader.GetInt32("StopSequence")
                 });
             }
         }
@@ -230,7 +230,7 @@ public class TripService : ITripService
                 startStopId, endStopId);
             throw;
         }
-        var tripStopGroups = stops.GroupBy(s => s.TripId).ToDictionary(s => s.Key, s => s.ToList());
+        var tripStopGroups = stops.GroupBy(s => s.tripId).ToDictionary(s => s.Key, s => s.ToList());
         return tripStopGroups;
     }
 

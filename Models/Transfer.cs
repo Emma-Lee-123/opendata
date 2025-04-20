@@ -2,17 +2,17 @@ namespace OpenData.Functions.Models
 {
     public class Transfer
     {
-        public string StopName
+        public string stopName
         {
             get;
             set;
         }
-        public string ArrivalTime
+        public string arrivalTime
         {
             get;
             set;
         }
-        public string DepartureTime
+        public string departureTime
         {
             get; set;
         }

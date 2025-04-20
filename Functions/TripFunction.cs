@@ -36,13 +36,13 @@ namespace OpenData.Functions
             var TransportType = queryParams["transportType"];
             var searchParams = new SearchParams
             {
-                From = fromStop,
-                To = toStop,
-                Date = date,
-                StartTime = startTime,
-                TransportType = TransportType
+                from = fromStop,
+                to = toStop,
+                date = date,
+                startTime = startTime,
+                transportType = TransportType
             };
-
+            _logger.LogInformation($"get-trip-stops function processed a request. from-{fromStop}, to-{toStop}, date-{date}, time-{startTime}");
             //todo: validate input parameters
 
             var trips = await _tripService.GetTripStopGroupsAsync(searchParams);
