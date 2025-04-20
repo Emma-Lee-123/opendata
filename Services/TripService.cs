@@ -17,7 +17,7 @@ public class TripService : ITripService
     }
 
 
-    public async Task<IEnumerable<TripStopGroup>> GetTop5TripStopGroupsAsync(SearchParams searchParams)
+    public async Task<IEnumerable<TripStopGroup>> GetTripStopGroupsAsync(SearchParams searchParams)
     {
         _logger.LogInformation($"GetTripStopGroupsAsync from-{searchParams.From}, to-{searchParams.To}, date-{searchParams.Date}, time-{searchParams.StartTime}");
         var fromStopId = searchParams.From;
@@ -55,7 +55,7 @@ public class TripService : ITripService
             {
                 if (tripStops.TryGetValue(trip.Id, out var stops))
                 {
-                    stops.ForEach(s=>s.TripHeadsign = trip.TripHeadsign);
+                    stops.ForEach(s => s.TripHeadsign = trip.TripHeadsign);
                     trip.FirstTripStops.AddRange(stops);
                 }
             }
@@ -87,7 +87,7 @@ public class TripService : ITripService
     {
         const string sql = @"
             SELECT TOP (@MaxResults)
-                t.TripId AS Id,
+                t.tripId AS Id,
                 os.DepartureTime AS DepartureTime,
                 ds.ArrivalTime AS ArrivalTime,
                 t.TripHeadsign AS FirstTripHeadsign,

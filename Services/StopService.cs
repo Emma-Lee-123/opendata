@@ -35,6 +35,7 @@ public class StopService : IStopService
         using var connection = new SqlConnection(dbConnectionString);
         await connection.OpenAsync();
         var sql = "SELECT TOP (@MaxResults) StopId, StopName FROM Stops WHERE StopName LIKE @Pattern ORDER BY StopName";
+        _logger.LogInformation("SQL Query: {Sql}", sql);
         using var command = new SqlCommand(sql, connection);
         command.Parameters.AddWithValue("@Pattern", $"%{pattern}%");
         command.Parameters.AddWithValue("@MaxResults", maxResults);

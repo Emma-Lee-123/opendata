@@ -45,7 +45,7 @@ namespace OpenData.Functions
 
             //todo: validate input parameters
 
-            var trips = await _tripService.GetTop5TripStopGroupsAsync(searchParams);
+            var trips = await _tripService.GetTripStopGroupsAsync(searchParams);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(trips);
             return response;

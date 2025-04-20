@@ -5,6 +5,6 @@ using OpenData.Functions.Models;
     public interface ITripService
     {
         //Task<IEnumerable<TripStopGroup>> GetTripStopGroupsAsync(SearchParams searchParams);
-        Task<IEnumerable<TripStopGroup>> GetTop5TripStopGroupsAsync(SearchParams searchParams);
+        Task<IEnumerable<TripStopGroup>> GetTripStopGroupsAsync(SearchParams searchParams);
     }
 // }
