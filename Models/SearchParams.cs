@@ -2,23 +2,23 @@ namespace OpenData.Functions.Models
 {
     public class SearchParams
     {
-        public string from
+        public string From
         {
             get; set;
         }
-        public string to
+        public string To
         {
             get; set;
         }
-        public string date
+        public string Date
         {
             get; set;
         }
-        public string startTime
+        public string StartTime
         {
             get; set;
         }
-        public string transportType
+        public string TransportType
         {
             get; set;
         } //'All' | 'Bus' | 'Train'

@@ -44,8 +44,8 @@ public class StopService : IStopService
         {
             var suggestion = new StopSuggestion
             {
-                id = reader.GetString(0),
-                name = reader.GetString(1)
+                Id = reader.GetString(0),
+                Name = reader.GetString(1)
             };
             suggestions.Add(suggestion);
         }

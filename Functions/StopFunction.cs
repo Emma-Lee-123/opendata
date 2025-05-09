@@ -1,7 +1,10 @@
 using System.Net;
+using System.Text.Json;
+
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace OpenData.Functions
 {
@@ -31,7 +34,7 @@ namespace OpenData.Functions
             if (string.IsNullOrEmpty(pattern))
             {
                 var response = req.CreateResponse(HttpStatusCode.BadRequest);
-                response.Headers.Add("Content-Type", "application/json; charset=utf-8");
+                //response.Headers.Add("Content-Type", "application/json; charset=utf-8");
                 await response.WriteStringAsync("{\"error\": \"Pattern is required\"}");
                 return response;
             }
@@ -39,7 +42,17 @@ namespace OpenData.Functions
             {
                 var suggestions = await _stopService.GetStopSuggestionsAsync(pattern, maxResultsValue);
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                await response.WriteAsJsonAsync(suggestions);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+                var json = JsonSerializer.Serialize(suggestions, options);
+                //await response.WriteAsJsonAsync(json);
+                response.Headers.Remove("Content-Type");
+                response.Headers.Add("Content-Type", "application/json");
+                await response.WriteStringAsync(json);
                 return response;
             }
         }

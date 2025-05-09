@@ -4,40 +4,40 @@ namespace OpenData.Functions.Models
 {
     public class TripStopGroup
     {
-        public string id
+        public string Id
         {
             get;
             set;
         }
-        public string departureTime
+        public string DepartureTime
         {
             get;
             set;
         }
-        public string arrivalTime
+        public string ArrivalTime
         {
             get;
             set;
         }
-        public string tripHeadsign
+        public string TripHeadsign
         {
             get;
             set;
         }
-        public int routeType
+        public int RouteType
         {
             get; set;
         }//0:streetcar;1:subway;2:rail;3:bus;4:ferry;5:cable car;6:funicular;7:trolley bus;8:monorail)
-        public List<TripStop> firstTripStops
+        public List<TripStop> FirstTripStops
         {
             get; set;
         }
-        public Transfer transfer
+        public Transfer Transfer
         {
             get;
             set;
         }
-        public List<TripStop> secondTripStops
+        public List<TripStop> SecondTripStops
         {
             get;
             set;

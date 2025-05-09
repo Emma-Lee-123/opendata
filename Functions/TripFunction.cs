@@ -1,4 +1,6 @@
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -36,18 +38,31 @@ namespace OpenData.Functions
             var TransportType = queryParams["transportType"];
             var searchParams = new SearchParams
             {
-                from = fromStop,
-                to = toStop,
-                date = date,
-                startTime = startTime,
-                transportType = TransportType
+                From = string.IsNullOrEmpty(fromStop) ? string.Empty : fromStop,
+                To = string.IsNullOrEmpty(toStop) ? string.Empty : toStop,
+                Date = string.IsNullOrEmpty(date) ? string.Empty : date,
+                StartTime = string.IsNullOrEmpty(startTime) ? string.Empty : startTime,
+                TransportType = string.IsNullOrEmpty(TransportType) ? string.Empty : TransportType
             };
             _logger.LogInformation($"get-trip-stops function processed a request. from-{fromStop}, to-{toStop}, date-{date}, time-{startTime}");
             //todo: validate input parameters
-
+            if (fromStop == "" || toStop == "" || date == "" || startTime == string.Empty)
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                //badResponse.Headers.Add("Content-Type", "application/json; charset=utf-8");
+                await badResponse.WriteStringAsync("Invalid parameters");
+                return badResponse;
+            }
             var trips = await _tripService.GetTripStopGroupsAsync(searchParams);
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(trips);
+            var json = JsonSerializer.Serialize(trips, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            });
+            response.Headers.Remove("Content-Type");
+            response.Headers.Add("Content-Type", "application/json");
+            await response.WriteStringAsync(json);
             return response;
 
         }

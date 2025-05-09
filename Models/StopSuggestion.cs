@@ -1,10 +1,10 @@
 public class StopSuggestion
 {
-    public string id
+    public string Id
     {
         get; set;
     }
-    public string name
+    public string Name
     {
         get; set;
     }

@@ -19,11 +19,11 @@ public class TripService : ITripService
 
     public async Task<IEnumerable<TripStopGroup>> GetTripStopGroupsAsync(SearchParams searchParams)
     {
-        _logger.LogInformation($"GetTripStopGroupsAsync from-{searchParams.from}, to-{searchParams.to}, date-{searchParams.date}, time-{searchParams.startTime}");
-        var fromStopId = searchParams.from;
-        var toStopId = searchParams.to;
-        var date = searchParams.date;
-        var startTime = searchParams.startTime;
+        _logger.LogInformation($"GetTripStopGroupsAsync from-{searchParams.From}, to-{searchParams.To}, date-{searchParams.Date}, time-{searchParams.StartTime}");
+        var fromStopId = searchParams.From;
+        var toStopId = searchParams.To;
+        var date = searchParams.Date;
+        var startTime = searchParams.StartTime;
 
         ValidateParameters(fromStopId, toStopId);
 
@@ -41,26 +41,30 @@ public class TripService : ITripService
             // Convert HHMM string to HH:MM:SS format for SQL comparison
             var formattedStartTime = FormatTimeString(startTime);
 
-            using var connection = new SqlConnection(dbConnectionString);
-            await connection.OpenAsync();
-
-            // Get direct trips first
-            var directTrips = await GetDirectTripsAsync(connection, fromStopId, toStopId, date, formattedStartTime, maxResults);
-            results.AddRange(directTrips);
-
-            var tripIds = directTrips.Select(t => t.id).ToList();
-            var tripStops = await GetStopsBetweenStopsAsync(tripIds, fromStopId, toStopId);
-
-            foreach (var trip in results)
+            using (var connection = new SqlConnection(dbConnectionString))
             {
-                if (tripStops.TryGetValue(trip.id, out var stops))
+                await connection.OpenAsync();
+                // Get direct trips first
+                var directTrips = await GetDirectTripsAsync(connection, fromStopId, toStopId, date, formattedStartTime, maxResults);
+                if (directTrips.Count > 0)
                 {
-                    stops.ForEach(s => s.tripHeadsign = trip.tripHeadsign);
-                    trip.firstTripStops.AddRange(stops);
+                    results.AddRange(directTrips);
+
+                    var tripIds = directTrips.Select(t => t.Id).ToList();
+                    var tripStops = await GetStopsBetweenStopsAsync(tripIds, fromStopId, toStopId);
+
+                    foreach (var trip in results)
+                    {
+                        if (tripStops.TryGetValue(trip.Id, out var stops))
+                        {
+                            stops.ForEach(s => s.TripHeadsign = trip.TripHeadsign);
+                            trip.FirstTripStops.AddRange(stops);
+                        }
+                    }
+                    _logger.LogInformation("Found {Count} trip options", results.Count);
                 }
+                return results.Take(maxResults);
             }
-            _logger.LogInformation("Found {Count} trip options", results.Count);
-            return results.Take(maxResults);
         }
         catch (SqlException ex)
         {
@@ -126,27 +130,29 @@ public class TripService : ITripService
     private async Task<List<TripStopGroup>> ReadTripStopGroupsAsync(SqlCommand command)
     {
         var results = new List<TripStopGroup>();
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
+        // using var reader = await command.ExecuteReaderAsync();
+        using (var reader = await command.ExecuteReaderAsync())
         {
-            results.Add(new TripStopGroup
+            while (await reader.ReadAsync())
             {
-                id = reader.GetString("Id"),
-                tripHeadsign = reader.GetString("FirstTripHeadsign"),
-                departureTime = reader.GetString("DepartureTime"),
-                arrivalTime = reader.GetString("ArrivalTime"),
-                routeType = reader.GetInt32("FirstRouteType"),
-                firstTripStops = new List<TripStop>(),
-                transfer = new Transfer(),
-                secondTripStops = new List<TripStop>()
-            });
+                results.Add(new TripStopGroup
+                {
+                    Id = reader.GetString("Id"),
+                    TripHeadsign = reader.GetString("FirstTripHeadsign"),
+                    DepartureTime = reader.GetString("DepartureTime"),
+                    ArrivalTime = reader.GetString("ArrivalTime"),
+                    RouteType = reader.GetInt32("FirstRouteType"),
+                    FirstTripStops = new List<TripStop>(),
+                    Transfer = new Transfer(),
+                    SecondTripStops = new List<TripStop>()
+                });
+            }
         }
 
         return results;
     }
 
-    public async Task<Dictionary<string, List<TripStop>>> GetStopsBetweenStopsAsync(
+    private async Task<Dictionary<string, List<TripStop>>> GetStopsBetweenStopsAsync(
         List<string> tripIds,
         string startStopId,
         string endStopId)
@@ -171,51 +177,53 @@ public class TripService : ITripService
 
         try
         {
-            using var connection = new SqlConnection(dbConnectionString);
-            await connection.OpenAsync();
-
-            // Create comma-separated list of quoted trip IDs for SQL IN clause
-            var tripIdList = string.Join(",", tripIds.Select(id => $"'{id}'"));
-
-            var sql = $@"
-            SELECT 
-                st.TripId,
-                st.StopId,
-                s.StopName,
-                st.ArrivalTime,
-                st.DepartureTime,
-                st.StopSequence
-            FROM StopTimes st
-            JOIN Stops s ON st.StopId = s.StopId
-            WHERE st.TripId IN ({tripIdList})
-            AND st.StopSequence >= (
-                SELECT StopSequence 
-                FROM StopTimes 
-                WHERE TripId = st.TripId AND StopId = @StartStopId
-            )
-            AND st.StopSequence <= (
-                SELECT StopSequence 
-                FROM StopTimes 
-                WHERE TripId = st.TripId AND StopId = @EndStopId
-            )
-            ORDER BY st.TripId, st.StopSequence";
-
-            using var command = new SqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@StartStopId", startStopId);
-            command.Parameters.AddWithValue("@EndStopId", endStopId);
-
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            using (var connection = new SqlConnection(dbConnectionString))
             {
-                stops.Add(new TripStop
+                await connection.OpenAsync();
+
+                // Create comma-separated list of quoted trip IDs for SQL IN clause
+                var tripIdList = string.Join(",", tripIds.Select(id => $"'{id}'"));
+
+                var sql = $@"
+                    SELECT 
+                        st.TripId,
+                        st.StopId,
+                        s.StopName,
+                        st.ArrivalTime,
+                        st.DepartureTime,
+                        st.StopSequence
+                    FROM StopTimes st
+                    JOIN Stops s ON st.StopId = s.StopId
+                    WHERE st.TripId IN ({tripIdList})
+                    AND st.StopSequence >= (
+                        SELECT StopSequence 
+                        FROM StopTimes 
+                        WHERE TripId = st.TripId AND StopId = @StartStopId
+                    )
+                    AND st.StopSequence <= (
+                        SELECT StopSequence 
+                        FROM StopTimes 
+                        WHERE TripId = st.TripId AND StopId = @EndStopId
+                    )
+                    ORDER BY st.TripId, st.StopSequence";
+
+                using var command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@StartStopId", startStopId);
+                command.Parameters.AddWithValue("@EndStopId", endStopId);
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
                 {
-                    tripId = reader.GetString("TripId"),
-                    stopId = reader.GetString("StopId"),
-                    stopName = reader.GetString("StopName"),
-                    arrivalTime = reader.GetString("ArrivalTime"),
-                    departureTime = reader.GetString("DepartureTime"),
-                    stopSequence = reader.GetInt32("StopSequence")
-                });
+                    stops.Add(new TripStop
+                    {
+                        TripId = reader.GetString("TripId"),
+                        StopId = reader.GetString("StopId"),
+                        StopName = reader.GetString("StopName"),
+                        ArrivalTime = reader.GetString("ArrivalTime"),
+                        DepartureTime = reader.GetString("DepartureTime"),
+                        StopSequence = reader.GetInt32("StopSequence")
+                    });
+                }
             }
         }
         catch (SqlException ex)
@@ -230,8 +238,8 @@ public class TripService : ITripService
                 startStopId, endStopId);
             throw;
         }
-        var tripStopGroups = stops.GroupBy(s => s.tripId).ToDictionary(s => s.Key, s => s.ToList());
-        return tripStopGroups;
+        var tripStops = stops.Count > 0 ? stops.GroupBy(s => s.TripId).ToDictionary(s => s.Key, s => s.ToList()) : new Dictionary<string, List<TripStop>>();
+        return tripStops;
     }
 
     private void ValidateParameters(string fromStopId, string toStopId)
